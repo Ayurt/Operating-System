@@ -1,0 +1,82 @@
+#include<stdio.h> 
+#include<stdbool.h>
+#include<limits.h>
+struct st{
+    int frame ;
+    int access;
+    int avail;
+};
+bool ispagepresent(struct st page_table[], int i){
+    if(page_table[i].avail == 1){
+        return true;
+    }
+    return false;
+}
+void updatePT(struct st page_table[], int PTind,int fno,int acctime,int valid){
+    page_table[PTind].frame = fno;
+    page_table[PTind].access = acctime;
+    page_table[PTind].avail = valid;
+}
+int findlru(struct st page_table[], int frame[], int f){
+    int min = INT_MAX;
+    int ret = -1;
+    for(int i =0; i<f; i++){
+        if(page_table[frame[i]].access<min){
+            min =page_table[frame[i]].access;
+            ret = i;
+        }
+    }
+    return ret;
+}
+int main(){
+    printf("Name - Ayush Rawat , Section - M , Roll No.-14\n");
+    int n, f, ptsize = INT_MIN, miss = 0;
+    printf("enter the size of sequence");
+    scanf("%d",&n);
+    int sequence[n];
+    printf("enter the sequence");
+    for(int i =0; i<n; i++){
+        scanf("%d",&sequence[i]);
+        if(sequence[i]>ptsize){
+            ptsize = sequence[i];
+        }
+    }
+    printf("enter the size of frames");
+    scanf("%d",&f);
+    int frame[f];
+    for(int i=0; i<f; i++){
+        frame[i] = -1;
+    }
+    struct st page_table[ptsize+1];
+    for(int i=0; i<ptsize+1; i++){
+        page_table[i].avail= 0;
+    }
+    int curr = 0;
+    for(int i=0; i<n; i++){
+        if(ispagepresent(page_table, sequence[i])==false){
+            miss++;
+            if(curr<f){
+                frame[curr]=sequence[i];
+                updatePT(page_table, sequence[i], i, curr, 1);
+                curr++;
+            }
+            else{
+                int lru;
+                lru = findlru(page_table,frame,f);
+                updatePT(page_table, frame[lru], -1, i  ,0 );
+                
+                frame[lru] = sequence[i];
+                updatePT(page_table, frame[lru],lru,i,1 );
+            }
+        }
+        page_table[sequence[i]].access = i;
+    }
+    
+    printf("total number of miss %d", miss);
+    printf("\ntotal number of hit is %d", n-miss);
+    printf("\nPage Miss ratio = %.2f",(float)miss/n);
+    printf("\nPage Hit Ratio = %.2f",(float)(n- miss/n));
+    
+    return 0;
+}
+
